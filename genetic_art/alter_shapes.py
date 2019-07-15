@@ -58,7 +58,9 @@ class NewImage:
             image = self.draw_shapes()
             shape = self.check_mutants(shape, image)
             self.shapes.insert(i, shape)
-        print("Time for one generation:", (time.time()-start)/(self.num_shapes*self.num_children))
+        print("Time for one generation: {} | Current Error: {}".format(
+            (time.time()-start), self.compare_to_true(self.draw_shapes())
+        ))
 
     def check_mutants(self, shape, image):
         mutants = shape.mutate_shape()
@@ -68,7 +70,7 @@ class NewImage:
             check_image = image.copy()
             draw = ImageDraw.Draw(check_image, 'RGBA')
             draw.polygon(mutant[0], mutant[1])
-            new_diff = sum(np.fabs(np.subtract(self.true_image.getdata(), check_image.getdata())).flatten())
+            new_diff = self.compare_to_true(check_image)
             if new_diff < best_diff:
                 best_diff = new_diff
                 best_mutant = mutant
@@ -77,6 +79,9 @@ class NewImage:
         shape.color = best_mutant[1]
 
         return shape
+
+    def compare_to_true(self, image):
+        return sum(np.fabs(np.subtract(self.true_image.getdata(), image.getdata())).flatten())
 
 
 
@@ -122,8 +127,9 @@ if __name__ == "__main__":
     new_image = NewImage(true_image, width, height)
     new_image.init_shapes()
     new_image.display_image()
-    for _ in range(1000):
+    for i in range(1000):
         new_image.one_generation()
-        new_image.display_image()
+        if not i%50:
+            new_image.display_image()
 
 
