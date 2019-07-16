@@ -64,6 +64,7 @@ class NewImage:
 
     def check_mutants(self, shape, image):
         mutants = shape.mutate_shape()
+        base_diff = self.compare_to_true(image)
         best_diff = float('INF')
 
         for mutant in mutants:
@@ -77,7 +78,7 @@ class NewImage:
 
         shape.vertices = best_mutant[0]
         shape.color = best_mutant[1]
-
+        print("\timprovement: {}".format(base_diff-best_diff))
         return shape
 
     def compare_to_true(self, image):
@@ -107,7 +108,7 @@ class Shape:
         self.vertices = [(random.randint(0, self.width),
                   random.randint(0, self.height)) for _ in range(self.num_sides)]
 
-        self.color = tuple(random.randint(0, 255) for _ in range(3)) + (125,)
+        self.color = tuple(random.randint(0, 255) for _ in range(4))
 
     def mutate_shape(self):
         children = [(self.vertices, self.color)]
@@ -116,8 +117,7 @@ class Shape:
             vertices = [(int(point[0] + self.rand_width()),
                          int(point[1] + self.rand_height()))
                         for point in self.vertices]
-            color = tuple(int(color + color * self.rand_var()) for color in self.color[:3])
-            color += (125,)
+            color = tuple(int(color + color * self.rand_var()) for color in self.color)
 
             children.append((vertices, color))
         return children
@@ -128,6 +128,7 @@ if __name__ == "__main__":
     new_image.init_shapes()
     new_image.display_image()
     for i in range(1000):
+        print("{} | ".format(i), end="")
         new_image.one_generation()
         if not i%50:
             new_image.display_image()
