@@ -76,9 +76,11 @@ class NewImage:
                 best_diff = new_diff
                 best_mutant = mutant
 
-        shape.vertices = best_mutant[0]
-        shape.color = best_mutant[1]
-        print("\timprovement: {}".format(base_diff-best_diff))
+        if base_diff > best_diff:
+            shape.vertices = best_mutant[0]
+            shape.color = best_mutant[1]
+        else:
+            shape = Shape(self.num_sides, self.height, self.width, self.num_children, self.max_variance)
         return shape
 
     def compare_to_true(self, image):
@@ -127,10 +129,10 @@ if __name__ == "__main__":
     new_image = NewImage(true_image, width, height)
     new_image.init_shapes()
     new_image.display_image()
-    for i in range(1000):
+    for i in range(2000):
         print("{} | ".format(i), end="")
         new_image.one_generation()
-        if not i%50:
+        if not i%300:
             new_image.display_image()
 
 
