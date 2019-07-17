@@ -35,18 +35,23 @@ class NewImage:
 
         self.background = Image.new('RGB', (self.width, self.height), color=0)
         self.shapes = []
+        self.prev_error = float('INF')
 
     def init_shapes(self):
         for _ in range(self.num_shapes):
-            self.shapes.append(Shape(self.num_sides, self.height, self.width, self.num_children, self.max_variance))
+            shape = Shape(self.num_sides, self.height, self.width, self.num_children, self.max_variance)
+            shape.init_shape()
+            self.shapes.append(shape)
 
     def display_image(self):
         image = self.draw_shapes()
         image.show()
 
     def draw_shapes(self):
+
         image = self.background.copy()
         draw = ImageDraw.Draw(image, 'RGBA')
+
         for shape in self.shapes:
             draw.polygon(shape.vertices, shape.color)
         return image
@@ -62,7 +67,7 @@ class NewImage:
             (time.time()-start), self.compare_to_true(self.draw_shapes())
         ))
 
-    def check_mutants(self, shape, image):
+    def check_mutants(self, shape, image, redraw=False):
         mutants = shape.mutate_shape()
         base_diff = self.compare_to_true(image)
         best_diff = float('INF')
@@ -76,11 +81,23 @@ class NewImage:
                 best_diff = new_diff
                 best_mutant = mutant
 
-        if base_diff > best_diff:
-            shape.vertices = best_mutant[0]
-            shape.color = best_mutant[1]
+        if redraw:
+            if base_diff > best_diff:
+                shape.vertices = best_mutant[0]
+                shape.color = best_mutant[1]
+            else:
+                shape = Shape(self.num_sides, self.height, self.width, self.num_children, self.max_variance)
+                shape.init_shape()
+
         else:
-            shape = Shape(self.num_sides, self.height, self.width, self.num_children, self.max_variance)
+            if self.prev_error < best_diff:
+                print('\t', shape.vertices, shape.color, mutant[0], mutant[1])
+                print('\t', self.prev_error, best_diff)
+            self.prev_error = best_diff
+            shape.vertices=best_mutant[0]
+            shape.color = best_mutant[1]
+
+
         return shape
 
     def compare_to_true(self, image):
@@ -97,14 +114,14 @@ class Shape:
         self.num_children = num_children
         self.max_variance = max_variance
 
-        self.vertices = None
-        self.color = None
+        self.vertices = 1
+        self.color = 1
 
         self.rand_var = lambda: random.uniform(-max_variance, max_variance)
         self.rand_height = lambda: self.rand_var() * height
         self.rand_width = lambda: self.rand_var() * width
 
-        self.init_shape()
+        #self.init_shape()
 
     def init_shape(self):
         self.vertices = [(random.randint(0, self.width),
@@ -116,8 +133,8 @@ class Shape:
         children = [(self.vertices, self.color)]
         for _ in range(self.num_children):
 
-            vertices = [(int(point[0] + self.rand_width()),
-                         int(point[1] + self.rand_height()))
+            vertices = [(max(0, int(point[0] + self.rand_width())),
+                         max(0, int(point[1] + self.rand_height())))
                         for point in self.vertices]
             color = tuple(int(color + color * self.rand_var()) for color in self.color)
 
