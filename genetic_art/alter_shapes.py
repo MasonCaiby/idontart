@@ -59,10 +59,10 @@ class NewImage:
     def one_generation(self):
         start = time.time()
         for i in range(len(self.shapes)):
-            shape = self.shapes.pop(i)
+            shape = self.shapes.pop(0)
             image = self.draw_shapes()
             shape = self.check_mutants(shape, image)
-            self.shapes.insert(i, shape)
+            self.shapes.insert(49, shape)
         print("Time for one generation: {} | Current Error: {}".format(
             (time.time()-start), self.compare_to_true(self.draw_shapes())
         ))
@@ -90,10 +90,6 @@ class NewImage:
                 shape.init_shape()
 
         else:
-            if self.prev_error < best_diff:
-                print('\t', shape.vertices, shape.color, mutant[0], mutant[1])
-                print('\t', self.prev_error, best_diff)
-            self.prev_error = best_diff
             shape.vertices=best_mutant[0]
             shape.color = best_mutant[1]
 
