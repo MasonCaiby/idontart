@@ -24,7 +24,8 @@ def show_two_pics(pic1, pic2):
     Image.fromarray(np.hstack((np.array(pic1), np.array(pic2)))).show()
 
 class NewImage:
-    def __init__(self, true_image, width, height, num_sides=3, num_shapes=50, max_variance=0.1, num_children=5):
+    def __init__(self, true_image, width, height, num_sides=3, num_shapes=50, max_variance=0.1,
+                 num_children=5):
         self.true_image = true_image
         self.width = width
         self.height = height
@@ -33,6 +34,7 @@ class NewImage:
         self.max_variance = max_variance
         self.num_children = num_children
 
+        self.num_gens = 0
         self.background = Image.new('RGB', (self.width, self.height), color=0)
         self.shapes = []
         self.prev_error = float('INF')
@@ -63,11 +65,12 @@ class NewImage:
             image = self.draw_shapes()
             shape = self.check_mutants(shape, image)
             self.shapes.insert(49, shape)
-        print("Time for one generation: {} | Current Error: {}".format(
+        print("Time for one generation: {:.2f} | Current Error: {}".format(
             (time.time()-start), self.compare_to_true(self.draw_shapes())
         ))
+        self.num_gens+=1
 
-    def check_mutants(self, shape, image, redraw=False):
+    def check_mutants(self, shape, image):
         mutants = shape.mutate_shape()
         base_diff = self.compare_to_true(image)
         best_diff = float('INF')
@@ -80,14 +83,6 @@ class NewImage:
             if new_diff < best_diff:
                 best_diff = new_diff
                 best_mutant = mutant
-
-        if redraw:
-            if base_diff > best_diff:
-                shape.vertices = best_mutant[0]
-                shape.color = best_mutant[1]
-            else:
-                shape = Shape(self.num_sides, self.height, self.width, self.num_children, self.max_variance)
-                shape.init_shape()
 
         else:
             shape.vertices=best_mutant[0]
